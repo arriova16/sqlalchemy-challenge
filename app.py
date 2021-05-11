@@ -41,7 +41,23 @@ def welcome():
     )
 
 
-@app.route("/api/v1.0/names")
+@app.route("/api/v1.0/precipitation")
+def names():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    """Return a list of all passenger names"""
+    # Query all passengers
+    results = session.query(Passenger.name).all()
+
+    session.close()
+
+    # Convert list of tuples into normal list
+    all_names = list(np.ravel(results))
+
+    return jsonify(all_names)
+
+@app.route("/api/v1.0/stations")
 def names():
     # Create our session (link) from Python to the DB
     session = Session(engine)
@@ -58,7 +74,7 @@ def names():
     return jsonify(all_names)
 
 
-@app.route("/api/v1.0/passengers")
+@app.route("/api/v1.0/tobs")
 def passengers():
     # Create our session (link) from Python to the DB
     session = Session(engine)
