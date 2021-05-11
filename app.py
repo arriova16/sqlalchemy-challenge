@@ -7,6 +7,8 @@ from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, inspect, func
 
+from flask import Flask, jsonify
+
 #################################################
 # Database Setup
 #################################################
@@ -22,7 +24,6 @@ Base.prepare(engine, reflect = True)
 Measurement = Base.classes.measurement
 Station = Base.classes.station
 
-session = Session(engine)
 
 #################################################
 # Flask Setup
@@ -40,99 +41,94 @@ def home():
     return (
         f"Available Routes:<br/>"
         f"/api/v1.0/precipitation<br/>"
-        f"/api/v1.0/stations"
-        f"/api/v1.0/tobs"
+        f"/api/v1.0/stations<br/>"
+        f"/api/v1.0/tobs<br/>"
         f"/api/v1.0/<start>"
         f"/api/v1.0/<start>/<end>"
     )
 
+# Convert the query results to a dictionary using date as the key and prcp as the value.
+# Return the JSON representation of your dictionary.
 
 @app.route("/api/v1.0/precipitation")
-def names():
-    # Create our session (link) from Python to the DB
+def precipitation():
+#   create our session(link) from Python to the DB
     session = Session(engine)
 
-    """Return a list of all passenger names"""
-    # Query all passengers
-    results = session.query(Passenger.name).all()
+    # Query Measurement
+    results = (session.query(Measurement.date, Measurement.pcp).order_by(Measurement.date))
+
+    date_pcp = []
+
+    for row in results:
+        dict= {}
+
+   
+    mydate = dt.date(mydate)-dt.datetime(days=365)
 
     session.close()
 
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
-
+  
     return jsonify(all_names)
 
 @app.route("/api/v1.0/stations")
-def names():
-    # Create our session (link) from Python to the DB
+def stations():
+   #   create our session(link) from Python to the DB
     session = Session(engine)
+"""Return a list of all station names"""
 
-    """Return a list of all passenger names"""
-    # Query all passengers
-    results = session.query(Passenger.name).all()
+# Query all stations
+
+    results = session.query(Station.name).all()
+
+# Convert list of tuples into normal list
+
+    all_stations = list(np.ravel(results))
 
     session.close()
 
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
-
-    return jsonify(all_names)
+    return jsonify(all_stations)
 
 @app.route("/api/v1.0/tobs")
-def names():
-    # Create our session (link) from Python to the DB
+def tobs():
+#   create our session(link) from Python to the DB  
     session = Session(engine)
 
-    """Return a list of all passenger names"""
-    # Query all passengers
-    results = session.query(Passenger.name).all()
+
 
     session.close()
 
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
 
     return jsonify(all_names)
 
 @app.route("/api/v1.0/<start>")
-def names():
-    # Create our session (link) from Python to the DB
+def start():
+#   create our session(link) from Python to the DB  
     session = Session(engine)
 
-    """Return a list of all passenger names"""
-    # Query all passengers
-    results = session.query(Passenger.name).all()
+
 
     session.close()
 
-    # Convert list of tuples into normal list
-    all_names = list(np.ravel(results))
+  
 
     return jsonify(all_names)
 
 
 @app.route("/api/v1.0/<start>/<end>")
-def passengers():
-    # Create our session (link) from Python to the DB
+def start_end():
+#   create our session(link) from Python to the DB    
     session = Session(engine)
 
-    """Return a list of passenger data including the name, age, and sex of each passenger"""
-    # Query all passengers
-    results = session.query(Passenger.name, Passenger.age, Passenger.sex).all()
+    
+    
 
     session.close()
 
-    # Create a dictionary from the row data and append to a list of all_passengers
-    all_passengers = []
-    for name, age, sex in results:
-        passenger_dict = {}
-        passenger_dict["name"] = name
-        passenger_dict["age"] = age
-        passenger_dict["sex"] = sex
-        all_passengers.append(passenger_dict)
+    
+   
 
-    return jsonify(all_passengers)
+    return jsonify(_____)
 
 
 if __name__ == '__main__':
