@@ -1,25 +1,28 @@
 import numpy as np
+import pandas as pd
+import datetime as dt
 
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
-from sqlalchemy import create_engine, func
-
-from flask import Flask, jsonify
-
+from sqlalchemy import create_engine, inspect, func
 
 #################################################
 # Database Setup
 #################################################
-engine = create_engine("sqlite:///titanic.sqlite")
+engine = create_engine('sqlite:///Resources/hawaii.sqlite')
 
 # reflect an existing database into a new model
 Base = automap_base()
 # reflect the tables
-Base.prepare(engine, reflect=True)
+Base.prepare(engine, reflect = True)
+
 
 # Save reference to the table
-Passenger = Base.classes.passenger
+Measurement = Base.classes.measurement
+Station = Base.classes.station
+
+session = Session(engine)
 
 #################################################
 # Flask Setup
@@ -32,12 +35,15 @@ app = Flask(__name__)
 #################################################
 
 @app.route("/")
-def welcome():
+def home():
     """List all available api routes."""
     return (
         f"Available Routes:<br/>"
-        f"/api/v1.0/names<br/>"
-        f"/api/v1.0/passengers"
+        f"/api/v1.0/precipitation<br/>"
+        f"/api/v1.0/stations"
+        f"/api/v1.0/tobs"
+        f"/api/v1.0/<start>"
+        f"/api/v1.0/<start>/<end>"
     )
 
 
@@ -73,8 +79,40 @@ def names():
 
     return jsonify(all_names)
 
-
 @app.route("/api/v1.0/tobs")
+def names():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    """Return a list of all passenger names"""
+    # Query all passengers
+    results = session.query(Passenger.name).all()
+
+    session.close()
+
+    # Convert list of tuples into normal list
+    all_names = list(np.ravel(results))
+
+    return jsonify(all_names)
+
+@app.route("/api/v1.0/<start>")
+def names():
+    # Create our session (link) from Python to the DB
+    session = Session(engine)
+
+    """Return a list of all passenger names"""
+    # Query all passengers
+    results = session.query(Passenger.name).all()
+
+    session.close()
+
+    # Convert list of tuples into normal list
+    all_names = list(np.ravel(results))
+
+    return jsonify(all_names)
+
+
+@app.route("/api/v1.0/<start>/<end>")
 def passengers():
     # Create our session (link) from Python to the DB
     session = Session(engine)
