@@ -9,6 +9,7 @@ from sqlalchemy import create_engine, inspect, func
 
 from flask import Flask, jsonify
 
+
 #################################################
 # Database Setup
 #################################################
@@ -43,8 +44,7 @@ def home():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start>"
-        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/start/end<br/>"
     )
 
 # Convert the query results to a dictionary using date as the key and prcp as the value.
@@ -56,25 +56,25 @@ def precipitation():
     session = Session(engine)
 
     # Query Measurement
-    results = (session.query(Measurement.date, Measurement.pcp).order_by(Measurement.date))
+    results = (session.query(Measurement.date, Measurement.prcp).order_by(Measurement.date)).all()
     
     session.close()
-    date_pcp = []
+    date_prcp = []
 
-    for date_pcp in results:
+    for date, prcp in results:
         dict= {}
-        dict["date"] = date_pcp.date
-        dict["pcp"] = date_pcp.pcp
-        date_pcp.append(dict)
+        dict["date"] = date
+        dict["prcp"] = prcp
+        date_prcp.append(dict)
    
 
-    return jsonify(date_pcp)
+    return jsonify(date_prcp)
 
 @app.route("/api/v1.0/stations")
 def stations():
    #   create our session(link) from Python to the DB
     session = Session(engine)
-"""Return a list of all station names"""
+# """Return a list of all station names"""
 
 # Query all stations
     results = session.query(Station.name).all()
@@ -100,46 +100,41 @@ def tobs():
 
     query_date = dt.date(2017, 8, 23) - dt.timedelta(days=365)
 
-    results = (session.query(Measurement.date, Measurement.tobs).order_by(Measurement.date))
+    results = session.query(Measurement.tobs).filter(Measurement.station == 'USC00519281').\
+        filter(Measurement.date >= query_date).all()
 
     session.close()
 
-most_recent = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
-    return jsonify(all_names)
+    most_recent = list(np.ravel(results))
+
+    return jsonify(most_recent)
 
 @app.route("/api/v1.0/<start>")
-def start():
+@app.route("/api/v1.0/<start>/<end>")
+def start(start=None, end=None):
 #   create our session(link) from Python to the DB  
     session = Session(engine)
+    if not end : 
+        results= session.query(func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
+   filter(Measurement.date >= start).all()
 
+    else:
 
-
-    session.close()
+        results= session.query(func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
+   filter(Measurement.date >= start).filter(Measurement.date <= end).all()
+    
 
   
+    session.close()
 
-    return jsonify(all_names)
+    most_recent = list(np.ravel(results))
+
+    return jsonify(most_recent)
 
 # /api/v1.0/<start> and /api/v1.0/<start>/<end>
 # Return a JSON list of the minimum temperature, the average temperature, and the max temperature for a given start or start-end range.
 # When given the start only, calculate TMIN, TAVG, and TMAX for all dates greater than and equal to the start date.
 # When given the start and the end date, calculate the TMIN, TAVG, and TMAX for dates between the start and end date inclusive.
-@app.route("/api/v1.0/<start>/<end>")
-def start_end():
-#   create our session(link) from Python to the DB    
-    session = Session(engine)
-
-    session.query(func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)).\
-   filter(Measurement.station == station_query).all()
-
-    
-
-    session.close()
-
-    
-   
-
-    return jsonify(_____)
 
 
 if __name__ == '__main__':
